@@ -1,19 +1,18 @@
 #!/bin/bash
 
-sudo apt install curl
+readonly node_version="18.12.1"
 
-sudo useradd -g agent -s /bin/bash agent
 
-sudo su - agent
+sudo apt install curl git
 
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+sudo apt install g++ gcc python3 
 
-source ~/.bashrc
+curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - &&\
+sudo apt-get install -y nodejs
 
-echo "Install at $NVM_DIR !"
+sudo useradd -m -s /bin/bash judger
 
-nvm install 18.12.1
+sudo echo "judger ALL=(ALL:ALL) NOPASSWD:ALL"
 
-npm install
 
-npm run start
+su - judger -c " rm -rf /home/judger/agent ;  mkdir /home/judger/agent ; cd /home/judger/agent ; git clone http://github.com/arthurya178-pccu/JudgerSystem-agent.git . ; chmod 766 /home/judger/agent/script/*.sh ; /home/judger/agent/script/setup_environment.sh ; npm install ; npm run start"
