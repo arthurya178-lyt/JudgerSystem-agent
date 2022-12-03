@@ -13,7 +13,7 @@ rm -rf $execute_path
 # rebuild execute environment folder
 mkdir $execute_path
 # change directory to execute environment
-cd $execute_environment_path
+cd $execute_path
 mkdir $compile_folder
 mkdir $export_folder
 mkdir $result_folder
