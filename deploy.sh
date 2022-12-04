@@ -9,7 +9,6 @@ sudo apt-get install -y nodejs
 
 sudo useradd -m -s /bin/bash judger
 
-sudo echo "judger ALL=(ALL:ALL) NOPASSWD:ALL"
-
+# sudo echo "judger ALL=(ALL:ALL) NOPASSWD:ALL"
 
 su - judger -c " rm -rf /home/judger/agent ;  mkdir /home/judger/agent ; cd /home/judger/agent ; git clone http://github.com/arthurya178-pccu/JudgerSystem-agent.git . ; chmod 766 /home/judger/agent/script/*.sh ; /home/judger/agent/script/setup_environment.sh ; npm install ; npm run start"
