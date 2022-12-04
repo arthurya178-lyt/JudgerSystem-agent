@@ -14,6 +14,8 @@ app.use(express.urlencoded({extended: false}))
 
 let connect_token = null
 
+let agent_idle = true
+
 // ask backend server for connect
 register_to_backend()
 // routing ask connection is still alive ?
@@ -35,6 +37,7 @@ const validation_connect = function (req,res,next){
 // 進行檢測
 app.post("/judge",validation_connect, async (req, res) =>
 {
+    agent_idle = false
     const base64_in = (req.query.base64 || req.query.base64_in )?true : false
     const base64_out = (req.query.base64 || req.query.base64_out )?true : false
     let htmlResponse = {
@@ -55,10 +58,18 @@ app.post("/judge",validation_connect, async (req, res) =>
         console.error(e.toString())
         htmlResponse.describe = e.toString()
     }
+    agent_idle = true
     res.json(htmlResponse)
 })
 
-
+//
+app.post("/connection",validation_connect, async (req, res) =>
+{
+    let response = {
+        status: (agent_idle) ? "idle" : "busy"
+    }
+    res.json(response)
+})
 
 // 重新設定連線
 app.post("/reset", async (req, res) =>
@@ -80,6 +91,7 @@ app.post("/test", async (req, res) =>
     let response = {
         status: "done"
     }
+
 
     res.json(response)
 })

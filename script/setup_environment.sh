@@ -5,6 +5,11 @@ cd $BASE_ROOT
 
 source ./environment_argument.sh
 
+echo $0
+echo $BASE_ROOT
+
+echo $(pwd)
+
 # clear directory
 
 # clear execute environment folder if folder exist
