@@ -1,11 +1,8 @@
 #!/bin/bash
 
-readonly node_version="18.12.1"
-
-
 sudo apt install curl git
 
-sudo apt install g++ gcc python3 
+sudo apt install g++ gcc python3 openjdk-18-jre-headless
 
 curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - &&\
 sudo apt-get install -y nodejs
