@@ -34,17 +34,27 @@ module.exports = {
 
             // function main part
 
-                // execute input file
-            judge_status.input = await this.executeProgram(language_id,"input",input_files)
-                    // input file should work successfully, if not this function should stop immediately
-            if (!judge_status.input.done) {
-                judge_status.errInfo = {type: "input_failed", describe: "input execute unexpected failed"}
-                return judge_status
-            }
+            // check is this code require input or not
+            if(input_files.length == 0){
                 // execute answer file
-            judge_status.answer = await this.executeProgram(language_id,"answer",answer_files,path.join(RESULT_DIRECTORY,"input.result"))
+                judge_status.answer = await this.executeProgram(language_id,"answer",answer_files)
                 // execute student file
-            judge_status.student = await this.executeProgram(language_id,"student",student_files,path.join(RESULT_DIRECTORY,"input.result"))
+                judge_status.student = await this.executeProgram(language_id,"student",student_files)
+            }
+            else{
+                // execute input file
+                judge_status.input = await this.executeProgram(language_id,"input",input_files)
+                // input file should work successfully, if not this function should stop immediately
+                if (!judge_status.input.done) {
+                    judge_status.errInfo = {type: "input_failed", describe: "input execute unexpected failed"}
+                    return judge_status
+                }
+                // execute answer file
+                judge_status.answer = await this.executeProgram(language_id,"answer",answer_files,path.join(RESULT_DIRECTORY,"input.result"))
+                // execute student file
+                judge_status.student = await this.executeProgram(language_id,"student",student_files,path.join(RESULT_DIRECTORY,"input.result"))
+
+            }
 
             if(base64_out){
                 judge_status.input = encodeResult(judge_status.input)
@@ -88,7 +98,7 @@ module.exports = {
 
             // execute program
             await shell(`timeout --preserve-status ${SHELL_ALLOW_TIME}  ${path.join(script_directory, support_lang[language_id].execute_file)} ${identification_code} ${input_file_path}`).then(response => {
-                // console.log(response)
+                console.log(response)
                 if (response.error) {
                     if (response.error.code === 1) {
                         execStatus.errInfo = {type: "Shell", describe: "compile error"}

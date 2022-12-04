@@ -14,14 +14,26 @@ app.use(express.urlencoded({extended: false}))
 
 let connect_token = null
 
-
 // ask backend server for connect
 register_to_backend()
 // routing ask connection is still alive ?
 setInterval(check_connect, RELOAD_TIME * 1000)
 
+const validation_connect = function (req,res,next){
+    if(req.headers.token == connect_token){
+        next()
+    }
+    else{
+        res.json({
+            status:"failed",
+            describe:"System Token not match"
+        })
+    }
+}
+
+
 // 進行檢測
-app.post("/judge", async (req, res) =>
+app.post("/judge",validation_connect, async (req, res) =>
 {
     const base64_in = (req.query.base64 || req.query.base64_in )?true : false
     const base64_out = (req.query.base64 || req.query.base64_out )?true : false
