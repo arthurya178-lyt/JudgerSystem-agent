@@ -7,6 +7,8 @@ sudo apt install g++ gcc python3 openjdk-18-jre-headless
 curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - &&\
 sudo apt-get install -y nodejs
 
+sudo userdel -f judger
+
 sudo useradd -m -s /bin/bash judger
 
 # sudo echo "judger ALL=(ALL:ALL) NOPASSWD:ALL"
