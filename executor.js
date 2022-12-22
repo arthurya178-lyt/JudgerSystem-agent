@@ -1,10 +1,10 @@
-const {SCRIPT_DIRECTORY,COMPILE_DIRECTORY, OUTPUT_DIRECTORY, SUPPORT_LANGUAGE, SHELL_ALLOW_TIME, RESULT_PATH,
-    RESULT_DIRECTORY
+const {SCRIPT_DIRECTORY, SUPPORT_LANGUAGE, SHELL_ALLOW_TIME, RESULT_PATH,
+    EXECUTE_DIRECTORY, COMPILE_PATH
 } = require("./ENV.args")
 
 const {shell, timeFileAnalyze, createFile,readFile,encodeResult} = require("./useful.js")
 const path = require('path')
-const {decodeBS64Files} = require("./useful");
+const {decodeBS64Files, randomCharacter} = require("./useful");
 
 const script_directory = SCRIPT_DIRECTORY
 const support_lang = SUPPORT_LANGUAGE
@@ -33,26 +33,27 @@ module.exports = {
             }
 
             // function main part
-
+            const sessionId = randomCharacter(16)
+            const session_path = await this.startSession(sessionId)
             // check is this code require input or not
             if(input_files.length == 0){
                 // execute answer file
-                judge_status.answer = await this.executeProgram(language_id,"answer",answer_files)
+                judge_status.answer = await this.executeProgram(sessionId,language_id,"answer",answer_files)
                 // execute student file
-                judge_status.student = await this.executeProgram(language_id,"student",student_files)
+                judge_status.student = await this.executeProgram(sessionId,language_id,"student",student_files)
             }
             else{
                 // execute input file
-                judge_status.input = await this.executeProgram(language_id,"input",input_files)
+                judge_status.input = await this.executeProgram(sessionId,language_id,"input",input_files)
                 // input file should work successfully, if not this function should stop immediately
                 if (!judge_status.input.done) {
                     judge_status.errInfo = {type: "input_failed", describe: "input execute unexpected failed"}
                     return judge_status
                 }
                 // execute answer file
-                judge_status.answer = await this.executeProgram(language_id,"answer",answer_files,path.join(RESULT_DIRECTORY,"input.result"))
+                judge_status.answer = await this.executeProgram(sessionId,language_id,"answer",answer_files,path.join(session_path,RESULT_PATH,"input.result"))
                 // execute student file
-                judge_status.student = await this.executeProgram(language_id,"student",student_files,path.join(RESULT_DIRECTORY,"input.result"))
+                judge_status.student = await this.executeProgram(sessionId,language_id,"student",student_files,path.join(session_path,RESULT_PATH,"input.result"))
 
             }
 
@@ -63,7 +64,7 @@ module.exports = {
             }
 
             judge_status.done = (judge_status.input.done && judge_status.input.done && judge_status.input.done)
-
+            await this.endSession(sessionId)
         } catch (e) {
             console.error(e.toString())
             judge_status.errInfo = {type: "Try_catch", describe: e.toString()}
@@ -71,12 +72,13 @@ module.exports = {
         return judge_status
     },
     /*
+    @session_id (string): this parameter is the program compile session folder id
     @language_id (int) : check ENV.args.js SUPPORT_LANGUAGE to get language id
     @identification_code (string) : Used to identify the execution process
     @source_code (Object Array) : Used to loading source code to file and judge in execute environment
     @input_file_path (string) Not necessary: input file path (base on script folder)
      */
-    executeProgram: async function (language_id, identification_code, source_code, input_file_path = "") {
+    executeProgram: async function (sessionId,language_id, identification_code, source_code, input_file_path = "") {
         let execStatus = {done: false}
         try {
             // validation input value and type
@@ -87,29 +89,31 @@ module.exports = {
             if (!support_lang[language_id].activate) throw "language not active, please check the support language list !"
 
             // function main part
+            const session_path = path.join(EXECUTE_DIRECTORY,sessionId)
 
-            await this.prepareEnvironment()
+            const compile_dir = path.join(session_path,COMPILE_PATH)
+            const result_dir = path.join(session_path,RESULT_PATH)
+
             // loading file into compile environment
-            const loading_result = this.loadingFile(COMPILE_DIRECTORY,source_code)
+            const loading_result = this.loadingFile(compile_dir,source_code)
             if(!loading_result.done){
                 throw loading_result.info.describe
             }
 
-
             // execute program
-            await shell(`timeout --preserve-status ${SHELL_ALLOW_TIME}  ${path.join(script_directory, support_lang[language_id].execute_file)} ${identification_code} ${input_file_path}`).then(response => {
+            await shell(`timeout --preserve-status ${SHELL_ALLOW_TIME}  ${path.join(script_directory, support_lang[language_id].execute_file)} ${session_path} ${identification_code} ${input_file_path}`).then(response => {
                 console.log(response)
                 if (response.error) {
                     if (response.error.code === 1) {
                         execStatus.errInfo = {type: "Shell", describe: "compile error"}
-                        execStatus.stdout = readFile(path.join(OUTPUT_DIRECTORY,`${identification_code}.compile`))
+                        execStatus.stdout = readFile(path.join(result_dir,`${identification_code}.result`))
 
                     } else if (response.error.code === 2) {
                         execStatus.errInfo = {type: "Shell", describe: "missing program"}
-                        execStatus.stdout = readFile(path.join(OUTPUT_DIRECTORY,`${identification_code}.compile`))
+                        execStatus.stdout = readFile(path.join(result_dir,`${identification_code}.result`))
                     } else if (response.error.code === 3) {
                         execStatus.errInfo = {type: "Shell", describe: "An error occurred during execution, it maybe Timeout or missing input file"}
-                        execStatus.stdout = readFile(path.join(RESULT_DIRECTORY,`${identification_code}.result`))
+                        execStatus.stdout = readFile(path.join(result_dir,`${identification_code}.result`))
                     } else if (response.error.code === 143) {
                         execStatus.errInfo = {type: "Unexpected", describe: "execute_file timeout interrupted"}
                     } else {
@@ -117,13 +121,13 @@ module.exports = {
                         execStatus.errInfo = {type: "Unexpected", describe: response.error}
                     }
                 } else {
-                    execStatus.stdout = readFile(path.join(RESULT_DIRECTORY,`${identification_code}.result`))
+                    execStatus.stdout = readFile(path.join(result_dir,`${identification_code}.result`))
                     execStatus.done = true
                 }
 
                 if (!response.error || response.error.code === 3) {
-                    execStatus.time_used = timeFileAnalyze(path.join(OUTPUT_DIRECTORY, `${identification_code}.exec.time`), 'TimeUsed')
-                    execStatus.Memory_used = timeFileAnalyze(path.join(OUTPUT_DIRECTORY, `${identification_code}.exec.time`), 'MaxMemoryUsed')
+                    execStatus.time_used = timeFileAnalyze(path.join(result_dir, `${identification_code}.exec.time`), 'TimeUsed')
+                    execStatus.Memory_used = timeFileAnalyze(path.join(result_dir, `${identification_code}.exec.time`), 'MaxMemoryUsed')
                 }
             })
         } catch (e) {
@@ -159,7 +163,14 @@ module.exports = {
         }
         return loadStatus
     },
-    prepareEnvironment:async function (){
-        await shell(`${path.join(SCRIPT_DIRECTORY,'preparation_environment.sh')}`)
+    startSession:async function (environment_session){
+        await shell(`${path.join(SCRIPT_DIRECTORY,'prepare_environment.sh')} ${environment_session}`)
+            //.then(res=>{console.log(res)})
+        return path.join(EXECUTE_DIRECTORY,environment_session)
+    },
+    endSession:async function (environment_session){
+        await shell(`${path.join(SCRIPT_DIRECTORY,'finish_environment.sh')} ${environment_session}`)
+            //.then(res=>{console.log(res)})
     }
+
 }

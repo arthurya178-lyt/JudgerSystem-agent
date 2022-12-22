@@ -9,9 +9,8 @@ exports.AGENT_PORT=8123
 exports.RELOAD_TIME=120
 
 exports.SCRIPT_PATH = "./script"
-exports.EXECUTE_PATH = "./execute_dir"
+exports.EXECUTE_PATH = "./sessions"
 exports.COMPILE_PATH = "./compile"
-exports.OUTPUT_PATH = "./output"
 exports.RESULT_PATH = "./result"
 exports.SHELL_ALLOW_TIME = '30s'
 exports.SUPPORT_LANGUAGE = [
@@ -31,19 +30,19 @@ exports.SUPPORT_LANGUAGE = [
         language_name: "C (GCC 11.3.0)",
         language_type: "C",
         execute_file: "execute_c.sh",
-        activate: true
+        activate: false
     },
     {
         language_name: "Python (Python 3.10.6)",
         language_type: "Python",
         execute_file: "execute_py.sh",
-        activate: true
+        activate: false
     },
     {
         language_name: "Java (OpenJDK 18.0.2-ea)",
         language_type: "Java",
         execute_file: "execute_java.sh",
-        activate: true
+        activate: false
     }
 ]
 
@@ -55,7 +54,3 @@ exports.BACKEND_SV = `http://${this.BACKEND_IP}:${this.BACKEND_PORT}`
 // // Base Directory
 exports.SCRIPT_DIRECTORY = path.join(__dirname,this.SCRIPT_PATH)
 exports.EXECUTE_DIRECTORY = path.join(this.SCRIPT_DIRECTORY,this.EXECUTE_PATH)
-// // // execute directory
-exports.COMPILE_DIRECTORY = path.join(this.EXECUTE_DIRECTORY,this.COMPILE_PATH)
-exports.OUTPUT_DIRECTORY = path.join(this.EXECUTE_DIRECTORY,this.OUTPUT_PATH)
-exports.RESULT_DIRECTORY = path.join(this.EXECUTE_DIRECTORY,this.RESULT_PATH)

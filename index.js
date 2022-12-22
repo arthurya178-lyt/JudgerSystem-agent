@@ -16,13 +16,17 @@ let connect_token = null
 
 let agent_idle = true
 
+const IGNORE_VALIDATION = true
+const OFFLINE_MODE = true
+
+
 // ask backend server for connect
 register_to_backend()
 // routing ask connection is still alive ?
 setInterval(check_connect, RELOAD_TIME * 1000)
 
 const validation_connect = function (req,res,next){
-    if(req.headers.token == connect_token){
+    if(IGNORE_VALIDATION || vareq.headers.token == connect_token){
         next()
     }
     else{
@@ -101,7 +105,7 @@ app.post("/test", async (req, res) =>
 // 註冊 agent 資料
 async function register_to_backend()
 {
-    while (!connect_token)
+    while (!connect_token && !OFFLINE_MODE )
     {
         const option = {
             method: 'post',
@@ -153,7 +157,7 @@ async function check_connect()
         console.log("Agent is disconnected !!")
         connect_token = null
     })
-    if (!connect_token)
+    if (!connect_token && !OFFLINE_MODE)
     {
         await register_to_backend()
     }

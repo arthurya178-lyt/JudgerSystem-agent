@@ -17,5 +17,4 @@ mkdir ./script/execute_dir/output
 mkdir ./script/execute_dir/result
 
 npm install
- 
-npm start
+
