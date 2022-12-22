@@ -44,7 +44,7 @@ app.post("/judge",validation_connect, async (req, res) =>
     agent_idle = false
     const base64_in = (req.query.base64 || req.query.base64_in )?true : false
     const base64_out = (req.query.base64 || req.query.base64_out )?true : false
-    let htmlResponse = {
+    let response = {
         success: false
     }
     try{
@@ -55,15 +55,15 @@ app.post("/judge",validation_connect, async (req, res) =>
         if(!Array.isArray(req.body.input)) throw "input parameter require Array type"
         if(!Array.isArray(req.body.answer)) throw "answer parameter require Array type"
         if(!Array.isArray(req.body.student)) throw "student parameter require Array type"
-        htmlResponse.info = await judger.judge(req.body.lang,req.body.input,req.body.answer,req.body.student, base64_in,base64_out)
-        htmlResponse.success = true
+        response.info = await judger.judge(req.body.lang,req.body.input,req.body.answer,req.body.student, base64_in,base64_out)
+        response.success = true
     }
     catch(e){
         console.error(e.toString())
-        htmlResponse.describe = e.toString()
+        response.describe = e.toString()
     }
     agent_idle = true
-    res.json(htmlResponse)
+    res.json(response)
 })
 
 //

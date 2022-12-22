@@ -5,14 +5,23 @@ const {SCRIPT_DIRECTORY, SUPPORT_LANGUAGE, SHELL_ALLOW_TIME, RESULT_PATH,
 const {shell, timeFileAnalyze, createFile,readFile,encodeResult} = require("./useful.js")
 const path = require('path')
 const {decodeBS64Files, randomCharacter} = require("./useful");
+const bs64 = require('js-base64')
 
 const script_directory = SCRIPT_DIRECTORY
 const support_lang = SUPPORT_LANGUAGE
 
 module.exports = {
-
+    /*
+    Judge for three files type [input,answer,student]
+    @language_id: agent allow to use compile language
+    @input_files: the file that need to compile input data
+    @answer_files: the file that need to compile input data
+    @student_files: the file that need to compile input data
+    @base64_in (default:true): decode base64 when file go to compile
+    @base64_out (default:true): encode base64 when result going to return
+     */
     judge: async function (language_id, input_files, answer_files, student_files ,base64_in=true,base64_out = true) {
-        let judge_status = {done:false,input:{},answer:{},student:{}}
+        let judge_status = {process_success:false,input:{},answer:{},student:{}}
         try {
             // validation input value and type
             if (!language_id) throw "language_id is empty, require language_id input !"
@@ -37,10 +46,17 @@ module.exports = {
             const session_path = await this.startSession(sessionId)
             // check is this code require input or not
             if(input_files.length == 0){
-                // execute answer file
-                judge_status.answer = await this.executeProgram(sessionId,language_id,"answer",answer_files)
-                // execute student file
-                judge_status.student = await this.executeProgram(sessionId,language_id,"student",student_files)
+                const compileAnswer = async ()=>{
+                    // execute answer file
+                    judge_status.answer = await this.executeProgram(sessionId,language_id,"answer",answer_files)
+                }
+                const compileStudent = async ()=>{
+                    // execute student file
+                    judge_status.student = await this.executeProgram(sessionId,language_id,"student",student_files)
+                }
+                // increase process efficiency , so here we used Synchronize Technology
+                await Promise.all([compileAnswer(),compileStudent()])
+
             }
             else{
                 // execute input file
@@ -50,10 +66,18 @@ module.exports = {
                     judge_status.errInfo = {type: "input_failed", describe: "input execute unexpected failed"}
                     return judge_status
                 }
-                // execute answer file
-                judge_status.answer = await this.executeProgram(sessionId,language_id,"answer",answer_files,path.join(session_path,RESULT_PATH,"input.result"))
-                // execute student file
-                judge_status.student = await this.executeProgram(sessionId,language_id,"student",student_files,path.join(session_path,RESULT_PATH,"input.result"))
+
+                const compileAnswer = async ()=>{
+                    // execute answer file
+                    judge_status.answer = await this.executeProgram(sessionId,language_id,"answer",answer_files,path.join(session_path,RESULT_PATH,"input.result"))
+                }
+
+                const compileStudent = async ()=>{
+                    // execute student file
+                    judge_status.student = await this.executeProgram(sessionId,language_id,"student",student_files,path.join(session_path,RESULT_PATH,"input.result"))
+                }
+                // increase process efficiency , so here we used Synchronize Technology
+                await Promise.all([compileAnswer(),compileStudent()])
 
             }
 
@@ -63,13 +87,44 @@ module.exports = {
                 judge_status.student = encodeResult(judge_status.student)
             }
 
-            judge_status.done = (judge_status.input.done && judge_status.input.done && judge_status.input.done)
+            judge_status.process_success = (judge_status.input.done && judge_status.input.done && judge_status.input.done)
             await this.endSession(sessionId)
         } catch (e) {
             console.error(e.toString())
             judge_status.errInfo = {type: "Try_catch", describe: e.toString()}
         }
         return judge_status
+    },
+    /*
+    Judge for one file (if input parameter exist ,this function can judge with it)
+    @language_id (int) : check ENV.args.js SUPPORT_LANGUAGE to get language id
+    @source_code (Object Array) : Used to loading source code to file and judge in execute environment
+    @input_file (Object Array): this parameter refer with @input_text, if input_text is active,
+    this field require string input,if input_text is deactivate this field require objArray
+    @input_text: control input type with string or objArray
+    @base64_in (default:true): decode base64 when file go to compile
+    @base64_out (default:true): encode base64 when result going to return
+     */
+    singleJudge:async function(language_id,source_code,input_file = "",input_text = false,base64_in=true,base64_out = true){
+        if (!language_id) throw "language_id is empty, require language_id input !"
+        if (!source_code) throw "answer_files is empty, require language_id input !"
+        if (!input_text && !Array.isArray(input_file)) throw "input_files type require Array, Please reconfirm the source_code type !"
+        if (!Array.isArray(source_code)) throw "answer_files type require Array, Please reconfirm the source_code type !"
+        if (!support_lang[language_id]) throw "language not exist, please check the support language list !"
+        if (!support_lang[language_id].activate) throw "Supported language is not activate !"
+
+        // decode part
+        if(base64_in){
+            input_file = input_text? bs64.decode(input_file) :decodeBS64Files(input_file)
+            source_code = decodeBS64Files(source_code)
+        }
+
+        const sessionId = randomCharacter(20)
+        const session_path = await this.startSession(sessionId)
+
+
+        await this.endSession(sessionId)
+
     },
     /*
     @session_id (string): this parameter is the program compile session folder id
