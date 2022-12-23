@@ -92,3 +92,8 @@ exports.readFile = function (file_path,option=null){
     }
     return read_status
 }
+
+exports.sleep = function (second){
+    console.log((`[Sleep] XX | Program stop ${second}'s | XX` ))
+    return new Promise(resolve => setTimeout(() =>resolve(), second*1000));
+}

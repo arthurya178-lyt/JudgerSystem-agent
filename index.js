@@ -41,7 +41,6 @@ const validation_connect = function (req,res,next){
 // 進行檢測
 app.post("/judge",validation_connect, async (req, res) =>
 {
-    agent_idle = false
     const base64_in = (req.query.base64 || req.query.base64_in )?true : false
     const base64_out = (req.query.base64 || req.query.base64_out )?true : false
     let response = {
@@ -62,9 +61,32 @@ app.post("/judge",validation_connect, async (req, res) =>
         console.error(e.toString())
         response.describe = e.toString()
     }
-    agent_idle = true
     res.json(response)
 })
+
+app.post("/execute",validation_connect, async (req, res) =>
+{
+    let response = {
+        success: false
+    }
+    try{
+        const base64_in = ((req.query.base64 === "true") || ( req.query.base64_in === "true") )?true : false
+        const base64_out = ((req.query.base64 === "true") || ( req.query.base64_out === "true") )?true : false
+        const input_text = req.query.input_text === "true"
+
+        if(!req.body.lang) throw "require lang parameter"
+        if(!req.body.source) throw "require source parameter"
+        if(!Array.isArray(req.body.source)) throw "source parameter require Array type"
+        response.info = await judger.singleJudge(req.body.lang,req.body.source,req.body.input,input_text, base64_in,base64_out)
+        response.success = true
+    }
+    catch(e){
+        console.error(e.toString())
+        response.describe = e.toString()
+    }
+    res.json(response)
+})
+
 
 //
 app.post("/connection",validation_connect, async (req, res) =>
@@ -187,4 +209,6 @@ app.listen(AGENT_PORT, () =>
         })
     })
     console.log(`agent server start at PORT:${AGENT_PORT} successfully `)
+    if(IGNORE_VALIDATION) console.log(`[warning] Agent API Validation Function is OFF`)
+    if(OFFLINE_MODE) console.log(`[warning] Agent API now is in OFFLINE mode`)
 })

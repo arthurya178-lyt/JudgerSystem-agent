@@ -56,8 +56,5 @@ async function asyncFunction(){
 
     let place = await judger.startSession("abc1233")
     console.log(place)
-    console.log(await judger.executeProgram("abc1233",1,"input",File))
-    console.log(await judger.executeProgram("abc1233",1,"answer",Answer,path.join(place,RESULT_PATH,'input.result')))
-    console.log(await judger.executeProgram("abc1233",1,"student",student,path.join(place,RESULT_PATH,'input.result')))
-    console.log(await judger.endSession("abc1233"))
+    //console.log(await judger.endSession("abc1233"))
 }

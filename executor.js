@@ -4,7 +4,7 @@ const {SCRIPT_DIRECTORY, SUPPORT_LANGUAGE, SHELL_ALLOW_TIME, RESULT_PATH,
 
 const {shell, timeFileAnalyze, createFile,readFile,encodeResult} = require("./useful.js")
 const path = require('path')
-const {decodeBS64Files, randomCharacter} = require("./useful");
+const {decodeBS64Files, randomCharacter, sleep} = require("./useful");
 const bs64 = require('js-base64')
 
 const script_directory = SCRIPT_DIRECTORY
@@ -42,7 +42,7 @@ module.exports = {
             }
 
             // function main part
-            const sessionId = randomCharacter(16)
+            const sessionId = randomCharacter(24)
             const session_path = await this.startSession(sessionId)
             // check is this code require input or not
             if(input_files.length == 0){
@@ -88,6 +88,7 @@ module.exports = {
             }
 
             judge_status.process_success = (judge_status.input.done && judge_status.input.done && judge_status.input.done)
+            //await sleep(10)
             await this.endSession(sessionId)
         } catch (e) {
             console.error(e.toString())
@@ -106,25 +107,57 @@ module.exports = {
     @base64_out (default:true): encode base64 when result going to return
      */
     singleJudge:async function(language_id,source_code,input_file = "",input_text = false,base64_in=true,base64_out = true){
-        if (!language_id) throw "language_id is empty, require language_id input !"
-        if (!source_code) throw "answer_files is empty, require language_id input !"
-        if (!input_text && !Array.isArray(input_file)) throw "input_files type require Array, Please reconfirm the source_code type !"
-        if (!Array.isArray(source_code)) throw "answer_files type require Array, Please reconfirm the source_code type !"
-        if (!support_lang[language_id]) throw "language not exist, please check the support language list !"
-        if (!support_lang[language_id].activate) throw "Supported language is not activate !"
+        let judge_status = {done:false,input:{},source:{},}
+        try{
+            if (!language_id) throw "language_id is empty, require language_id input !"
+            if (!source_code) throw "answer_files is empty, require language_id input !"
+            if (!input_text && !Array.isArray(input_file)) throw "input_files type require Array, Please reconfirm the source_code type !"
+            if (!Array.isArray(source_code)) throw "answer_files type require Array, Please reconfirm the source_code type !"
+            if (!support_lang[language_id]) throw "language not exist, please check the support language list !"
+            if (!support_lang[language_id].activate) throw "Supported language is not activate !"
 
-        // decode part
-        if(base64_in){
-            input_file = input_text? bs64.decode(input_file) :decodeBS64Files(input_file)
-            source_code = decodeBS64Files(source_code)
+
+            if(input_text && typeof input_file !== "string") throw "input_file parameter should be string type"
+            if(!input_text && typeof input_file !== "object") throw "input_file parameter should be object type"
+
+            // decode part
+            if(base64_in){
+                input_file = input_text? bs64.decode(input_file) :decodeBS64Files(input_file)
+                source_code = decodeBS64Files(source_code)
+            }
+
+            const sessionId = randomCharacter(24)
+            const session_path = await this.startSession(sessionId)
+            // check the input is array or text
+            if(input_text){
+                // check is input_file is string or not
+                if(typeof input_file !== "string") throw "input_file parameter should be string type"
+                // loading input data to session path compile folder
+                this.loadingFile(path.join(session_path,RESULT_PATH), [{file_name:"input.result",file_data:input_file}])
+                // execute source code
+                judge_status.source = await this.executeProgram(sessionId,language_id,"source",source_code,path.join(session_path,RESULT_PATH,"input.result"))
+                judge_status.done = judge_status.source.done
+            }
+            else{
+                // execute input file
+                judge_status.input = await this.executeProgram(sessionId,language_id,"input",input_file)
+                // input file should work successfully, if not this function should stop immediately
+                if (!judge_status.input.done) {
+                    judge_status.errInfo = {type: "input_failed", describe: "input execute unexpected failed"}
+                    return judge_status
+                }
+
+                // execute source code
+                judge_status.source = await this.executeProgram(sessionId,language_id,"source",source_code,path.join(session_path,RESULT_PATH,"input.result"))
+            }
+            //await sleep(10)
+            await this.endSession(sessionId)
         }
-
-        const sessionId = randomCharacter(20)
-        const session_path = await this.startSession(sessionId)
-
-
-        await this.endSession(sessionId)
-
+        catch (e){
+            console.error(e.toString())
+            judge_status.errInfo = {type: "Try_catch", describe: e.toString()}
+        }
+        return judge_status
     },
     /*
     @session_id (string): this parameter is the program compile session folder id
@@ -157,7 +190,7 @@ module.exports = {
 
             // execute program
             await shell(`timeout --preserve-status ${SHELL_ALLOW_TIME}  ${path.join(script_directory, support_lang[language_id].execute_file)} ${session_path} ${identification_code} ${input_file_path}`).then(response => {
-                console.log(response)
+                // console.log(response)
                 if (response.error) {
                     if (response.error.code === 1) {
                         execStatus.errInfo = {type: "Shell", describe: "compile error"}
@@ -219,11 +252,13 @@ module.exports = {
         return loadStatus
     },
     startSession:async function (environment_session){
+        console.log(`[Sessions] ++ Start new session | ID: ${environment_session} | ++`)
         await shell(`${path.join(SCRIPT_DIRECTORY,'prepare_environment.sh')} ${environment_session}`)
             //.then(res=>{console.log(res)})
         return path.join(EXECUTE_DIRECTORY,environment_session)
     },
     endSession:async function (environment_session){
+        console.log(`[Sessions] -- End session | ID: ${environment_session} | --`)
         await shell(`${path.join(SCRIPT_DIRECTORY,'finish_environment.sh')} ${environment_session}`)
             //.then(res=>{console.log(res)})
     }
