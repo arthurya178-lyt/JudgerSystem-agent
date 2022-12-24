@@ -22,6 +22,7 @@ module.exports = {
      */
     judge: async function (language_id, input_files, answer_files, student_files ,base64_in=true,base64_out = true) {
         let judge_status = {process_success:false,input:{},answer:{},student:{}}
+        let sessionId = null
         try {
             // validation input value and type
             if (!language_id) throw "language_id is empty, require language_id input !"
@@ -42,7 +43,7 @@ module.exports = {
             }
 
             // function main part
-            const sessionId = randomCharacter(24)
+            sessionId = randomCharacter(24)
             const session_path = await this.startSession(sessionId)
             // check is this code require input or not
             if(input_files.length == 0){
@@ -94,6 +95,9 @@ module.exports = {
         } catch (e) {
             console.error(e.toString())
             judge_status.errInfo = {type: "Try_catch", describe: e.toString()}
+            if(sessionId){
+                await this.endSession(sessionId)
+            }
         }
         return judge_status
     },
@@ -108,7 +112,8 @@ module.exports = {
     @base64_out (default:true): encode base64 when result going to return
      */
     singleJudge:async function(language_id,source_code,input_file = "",input_text = false,base64_in=true,base64_out = true){
-        let judge_status = {process_success:false,input:{},source:{},}
+        let judge_status = {process_success:false,input:{},source:{}}
+        let sessionId= null
         try{
             if (!language_id) throw "language_id is empty, require language_id input !"
             if (!source_code) throw "answer_files is empty, require language_id input !"
@@ -127,7 +132,7 @@ module.exports = {
                 source_code = decodeBS64Files(source_code)
             }
 
-            const sessionId = randomCharacter(24)
+            sessionId = randomCharacter(24)
             const session_path = await this.startSession(sessionId)
             // check the input is array or text
             if(input_text){
@@ -158,6 +163,9 @@ module.exports = {
         catch (e){
             console.error(e.toString())
             judge_status.errInfo = {type: "Try_catch", describe: e.toString()}
+            if(sessionId){
+                await this.endSession(sessionId)
+            }
         }
         return judge_status
     },
