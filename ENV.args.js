@@ -6,7 +6,7 @@ exports.BACKEND_IP="192.168.163.1"
 exports.BACKEND_PORT=8080
 exports.AGENT_PORT=8123
 
-exports.RELOAD_TIME=120
+exports.RELOAD_TIME=2000
 
 exports.SCRIPT_PATH = "./script"
 exports.EXECUTE_PATH = "./sessions"

@@ -16,9 +16,12 @@ let connect_token = null
 
 let agent_idle = true
 
-const IGNORE_VALIDATION = true
-const OFFLINE_MODE = true
 
+
+// DEBUG ONLY USED
+const IGNORE_VALIDATION = false
+const OFFLINE_MODE = false
+// END
 
 // ask backend server for connect
 register_to_backend()
@@ -26,7 +29,7 @@ register_to_backend()
 setInterval(check_connect, RELOAD_TIME * 1000)
 
 const validation_connect = function (req,res,next){
-    if(IGNORE_VALIDATION || vareq.headers.token == connect_token){
+    if(IGNORE_VALIDATION || req.headers.token == connect_token){
         next()
     }
     else{
@@ -134,7 +137,8 @@ async function register_to_backend()
             url: `${BACKEND_SV}/activate`,
             data: qs.stringify({
                 active_code: ACTIVE_CODE
-            })
+            }),
+            timeout:5000,
         }
         await axios(option).then(async (response) =>
         {
@@ -161,7 +165,8 @@ async function check_connect()
         url: `${BACKEND_SV}/verify`,
         data: qs.stringify({
             token: connect_token
-        })
+        }),
+        timeout:5000,
     }
     await axios(option).then(async (response) =>
     {

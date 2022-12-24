@@ -107,7 +107,7 @@ module.exports = {
     @base64_out (default:true): encode base64 when result going to return
      */
     singleJudge:async function(language_id,source_code,input_file = "",input_text = false,base64_in=true,base64_out = true){
-        let judge_status = {done:false,input:{},source:{},}
+        let judge_status = {process_success:false,input:{},source:{},}
         try{
             if (!language_id) throw "language_id is empty, require language_id input !"
             if (!source_code) throw "answer_files is empty, require language_id input !"
@@ -136,7 +136,7 @@ module.exports = {
                 this.loadingFile(path.join(session_path,RESULT_PATH), [{file_name:"input.result",file_data:input_file}])
                 // execute source code
                 judge_status.source = await this.executeProgram(sessionId,language_id,"source",source_code,path.join(session_path,RESULT_PATH,"input.result"))
-                judge_status.done = judge_status.source.done
+                judge_status.process_success = judge_status.source.done
             }
             else{
                 // execute input file
