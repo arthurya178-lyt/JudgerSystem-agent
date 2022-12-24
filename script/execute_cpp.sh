@@ -38,7 +38,6 @@ then
 	exit 1
 fi
 
-
 # execute output from compile cpp file
 if [ -f $identify_name.out ]
 	then

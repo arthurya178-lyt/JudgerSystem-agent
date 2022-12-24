@@ -77,8 +77,9 @@ module.exports = {
                     judge_status.student = await this.executeProgram(sessionId,language_id,"student",student_files,path.join(session_path,RESULT_PATH,"input.result"))
                 }
                 // increase process efficiency , so here we used Synchronize Technology
-                await Promise.all([compileAnswer(),compileStudent()])
-
+                // await Promise.all([compileAnswer(),compileStudent()])
+                await compileAnswer()
+                await compileStudent()
             }
 
             if(base64_out){
@@ -149,6 +150,7 @@ module.exports = {
 
                 // execute source code
                 judge_status.source = await this.executeProgram(sessionId,language_id,"source",source_code,path.join(session_path,RESULT_PATH,"input.result"))
+                judge_status.process_success = judge_status.source.done
             }
             //await sleep(10)
             await this.endSession(sessionId)

@@ -30,19 +30,19 @@ exports.SUPPORT_LANGUAGE = [
         language_name: "C (GCC 11.3.0)",
         language_type: "C",
         execute_file: "execute_c.sh",
-        activate: false
+        activate: true
     },
     {
         language_name: "Python (Python 3.10.6)",
         language_type: "Python",
         execute_file: "execute_py.sh",
-        activate: false
+        activate: true
     },
     {
         language_name: "Java (OpenJDK 18.0.2-ea)",
         language_type: "Java",
         execute_file: "execute_java.sh",
-        activate: false
+        activate: true
     }
 ]
 

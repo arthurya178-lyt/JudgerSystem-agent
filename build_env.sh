@@ -5,16 +5,11 @@ sudo apt install g++ gcc python3 openjdk-18-jre-headless openjdk-18-jdk-headless
 curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - &&\
 sudo apt-get install -y nodejs
 
-rm -rf ./script/execute_dir ;
+chmod 744 ./script/*.sh
  
-chmod 700 ./script/*.sh
- 
-rm -rf ./script/execute_dir
+rm -rf ./script/sessions
 
-mkdir ./script/execute_dir
-mkdir ./script/execute_dir/compile
-mkdir ./script/execute_dir/output
-mkdir ./script/execute_dir/result
+mkdir ./script/sessions
 
 npm install
 
