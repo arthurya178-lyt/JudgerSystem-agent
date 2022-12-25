@@ -2,7 +2,7 @@ const path = require('path')
 
 exports.ACTIVE_CODE="9C7YZYRKLYLVQ7Y9"
 
-exports.BACKEND_IP="192.168.163.1"
+exports.BACKEND_IP="10.17.98.1"
 exports.BACKEND_PORT=8080
 exports.AGENT_PORT=8123
 
