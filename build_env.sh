@@ -1,4 +1,6 @@
-sudo apt install curl git
+
+audo apt update
+sudo apt install curl
 
 sudo apt install g++ gcc python3 openjdk-18-jre-headless openjdk-18-jdk-headless
 
