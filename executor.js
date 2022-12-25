@@ -265,7 +265,7 @@ module.exports = {
     clearFile:async function (path,fileName){
         let clearStatus = {done: false}
         await shell(`rm -rf ${path}/${fileName}`).then(response=>{
-            if(!response.error){
+            if(response.error){
                 console.error(response)
             }else {
                 clearStatus.done = true
