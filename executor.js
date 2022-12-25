@@ -228,6 +228,7 @@ module.exports = {
                     execStatus.Memory_used = timeFileAnalyze(path.join(result_dir, `${identification_code}.exec.time`), 'MaxMemoryUsed')
                 }
             })
+            await this.clearFile(compile_dir,`*.${support_lang[language_id].suffix}`)
         } catch (e) {
             console.error(e.toString())
             execStatus.errInfo = {type: "Try_catch", describe: e.toString()}
@@ -260,6 +261,17 @@ module.exports = {
             loadStatus.info = {type: "Try_catch", describe: e.toString()}
         }
         return loadStatus
+    },
+    clearFile:async function (path,fileName){
+        let clearStatus = {done: false}
+        await shell(`rm -rf ${path}/${fileName}`).then(response=>{
+            if(!response.error){
+                console.error(response)
+            }else {
+                clearStatus.done = true
+            }
+        })
+        return clearStatus
     },
     startSession:async function (environment_session){
         console.log(`[Sessions] ++ Start new session | ID: ${environment_session} | ++`)

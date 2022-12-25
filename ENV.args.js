@@ -18,30 +18,35 @@ exports.SUPPORT_LANGUAGE = [
         language_name: "Test (Test 1.0.0)",
         language_type: "Test",
         execute_file: "test.sh",
+        suffix:"text",
         activate: false
     },
     {
         language_name: "C++ (G++ 11.3.0)",
         language_type: "C++",
         execute_file: "execute_cpp.sh",
+        suffix:"cpp",
         activate: true
     },
     {
         language_name: "C (GCC 11.3.0)",
         language_type: "C",
         execute_file: "execute_c.sh",
+        suffix:"c",
         activate: true
     },
     {
         language_name: "Python (Python 3.10.6)",
         language_type: "Python",
         execute_file: "execute_py.sh",
+        suffix:"py",
         activate: true
     },
     {
         language_name: "Java (OpenJDK 18.0.2-ea)",
         language_type: "Java",
         execute_file: "execute_java.sh",
+        suffix:"java",
         activate: true
     }
 ]
