@@ -290,12 +290,13 @@ module.exports = {
             //.then(res=>{console.log(res)})
     },
     securityClear:function (data,language){
+        let innerText = data || ""
         const replacer = SUPPORT_LANGUAGE[language].replacer || ""
         for(let i = 0 ; i < SECURITY_WORD.length;i++){
-            data = data.replace(SECURITY_WORD[i],replacer)
+            innerText = innerText.replace(SECURITY_WORD[i],replacer)
         }
-        console.log(data)
-        return data
+        console.log(innerText)
+        return innerText
 
     }
 
