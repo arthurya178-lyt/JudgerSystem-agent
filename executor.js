@@ -1,5 +1,5 @@
 const {SCRIPT_DIRECTORY, SUPPORT_LANGUAGE, SHELL_ALLOW_TIME, RESULT_PATH,
-    EXECUTE_DIRECTORY, COMPILE_PATH
+    EXECUTE_DIRECTORY, COMPILE_PATH, SECURITY_WORD
 } = require("./ENV.args")
 
 const {shell, timeFileAnalyze, createFile,readFile,encodeResult} = require("./useful.js")
@@ -193,7 +193,7 @@ module.exports = {
             const result_dir = path.join(session_path,RESULT_PATH)
 
             // loading file into compile environment
-            const loading_result = this.loadingFile(compile_dir,source_code)
+            const loading_result = this.loadingFile(compile_dir,source_code,language_id)
             if(!loading_result.done){
                 throw loading_result.info.describe
             }
@@ -242,17 +242,22 @@ module.exports = {
         @file_name (String)
         @file_data (String)
      */
-    loadingFile: function (file_path, file_list) {
+    loadingFile: function (file_path, file_list,language = 0) {
         let loadStatus = {done: false}
         try {
             // validation input value and type
             if (!Array.isArray(file_list)) throw "require file_list type Array!"
             if (!file_path || file_path.length == 0) throw "require create path!!"
 
+            // Clear System command line KeyWord
+
+
             // function main part
             for (let file = 0; file < file_list.length; file++) {
+                const file_name = file_list[file].file_name
+                const file_data = this.securityClear(file_list[file].file_data,language)
                 // if create file failed
-                if (!createFile(file_path, file_list[file].file_name, file_list[file].file_data))
+                if (!createFile(file_path, file_name, file_data))
                     throw `Creating file ${file_list[file].file_name} failed`
             }
             loadStatus.done = true
@@ -283,6 +288,15 @@ module.exports = {
         console.log(`[Sessions] -- End session | ID: ${environment_session} | --`)
         await shell(`${path.join(SCRIPT_DIRECTORY,'finish_environment.sh')} ${environment_session}`)
             //.then(res=>{console.log(res)})
+    },
+    securityClear:function (data,language){
+        const replacer = SUPPORT_LANGUAGE[language].replacer || ""
+        for(let i = 0 ; i < SECURITY_WORD.length;i++){
+            data = data.replace(SECURITY_WORD[i],replacer)
+        }
+        console.log(data)
+        return data
+
     }
 
 }

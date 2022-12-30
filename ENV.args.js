@@ -3,6 +3,7 @@ const path = require('path')
 exports.ACTIVE_CODE="9C7YZYRKLYLVQ7Y9"
 
 exports.BACKEND_IP="10.17.98.1"
+//exports.BACKEND_IP="192.168.163.1"
 exports.BACKEND_PORT=8080
 exports.AGENT_PORT=8123
 
@@ -19,6 +20,7 @@ exports.SUPPORT_LANGUAGE = [
         language_type: "Test",
         execute_file: "test.sh",
         suffix:"text",
+        replacer:"#",
         activate: false
     },
     {
@@ -26,6 +28,7 @@ exports.SUPPORT_LANGUAGE = [
         language_type: "C++",
         execute_file: "execute_cpp.sh",
         suffix:"cpp",
+        replacer:"//",
         activate: true
     },
     {
@@ -33,6 +36,7 @@ exports.SUPPORT_LANGUAGE = [
         language_type: "C",
         execute_file: "execute_c.sh",
         suffix:"c",
+        replacer:"//",
         activate: true
     },
     {
@@ -40,6 +44,7 @@ exports.SUPPORT_LANGUAGE = [
         language_type: "Python",
         execute_file: "execute_py.sh",
         suffix:"py",
+        replacer:"#",
         activate: true
     },
     {
@@ -47,10 +52,11 @@ exports.SUPPORT_LANGUAGE = [
         language_type: "Java",
         execute_file: "execute_java.sh",
         suffix:"java",
+        replacer:"//",
         activate: true
     }
 ]
-
+exports.SECURITY_WORD = [ /system\s*\(/g,/WinExec\s*\(/g,/::CreateProcess\s*\(/g,/\.exec\s*\(/g]
 
 
 // process commonly used path, don't change inside
