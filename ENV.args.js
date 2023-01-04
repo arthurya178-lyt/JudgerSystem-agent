@@ -56,7 +56,7 @@ exports.SUPPORT_LANGUAGE = [
         activate: true
     }
 ]
-exports.SECURITY_WORD = [ /system\s*\(/g,/WinExec\s*\(/g,/::CreateProcess\s*\(/g,/\.exec\s*\(/g]
+exports.SECURITY_WORD = [ /system\s*\(/g,/WinExec\s*\(/g,/::CreateProcess\s*\(/g,/\.exec\s*\(/g,/\.fork\s*\(/g]
 
 
 // process commonly used path, don't change inside
