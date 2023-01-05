@@ -295,7 +295,7 @@ module.exports = {
         for(let i = 0 ; i < SECURITY_WORD.length;i++){
             innerText = innerText.replace(SECURITY_WORD[i],replacer)
         }
-        console.log(innerText)
+        //console.log(innerText)
         return innerText
 
     }
