@@ -1,23 +1,20 @@
 
-audo apt update
-sudo apt install curl
+sudo apt update
 
-sudo apt install g++ gcc python3 openjdk-18-jre-headless openjdk-18-jdk-headless
+sudo apt install curl time
+
+sudo apt install g++ gcc python3 default-jre default-jdk
 
 curl -fsSL https://deb.nodesource.com/setup_current.x | sudo -E bash - &&\
 sudo apt-get install -y nodejs
 
-rm -rf ./script/execute_dir ;
- 
-chmod 700 ./script/*.sh
- 
-rm -rf ./script/execute_dir
+sudo apt install npm
 
-mkdir ./script/execute_dir
-mkdir ./script/execute_dir/compile
-mkdir ./script/execute_dir/output
-mkdir ./script/execute_dir/result
+chmod 744 ./script/*.sh
+ 
+rm -rf ./script/sessions
+
+mkdir ./script/sessions
 
 npm install
- 
-npm start
+

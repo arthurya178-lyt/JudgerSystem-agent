@@ -16,13 +16,20 @@ let connect_token = null
 
 let agent_idle = true
 
+
+
+// DEBUG ONLY USED
+const IGNORE_VALIDATION = false
+const OFFLINE_MODE = false
+// END
+
 // ask backend server for connect
 register_to_backend()
 // routing ask connection is still alive ?
 setInterval(check_connect, RELOAD_TIME * 1000)
 
 const validation_connect = function (req,res,next){
-    if(req.headers.token == connect_token){
+    if(IGNORE_VALIDATION || req.headers.token == connect_token){
         next()
     }
     else{
@@ -37,10 +44,9 @@ const validation_connect = function (req,res,next){
 // 進行檢測
 app.post("/judge",validation_connect, async (req, res) =>
 {
-    agent_idle = false
     const base64_in = (req.query.base64 || req.query.base64_in )?true : false
     const base64_out = (req.query.base64 || req.query.base64_out )?true : false
-    let htmlResponse = {
+    let response = {
         success: false
     }
     try{
@@ -51,16 +57,39 @@ app.post("/judge",validation_connect, async (req, res) =>
         if(!Array.isArray(req.body.input)) throw "input parameter require Array type"
         if(!Array.isArray(req.body.answer)) throw "answer parameter require Array type"
         if(!Array.isArray(req.body.student)) throw "student parameter require Array type"
-        htmlResponse.info = await judger.judge(req.body.lang,req.body.input,req.body.answer,req.body.student, base64_in,base64_out)
-        htmlResponse.success = true
+        response.info = await judger.judge(req.body.lang,req.body.input,req.body.answer,req.body.student, base64_in,base64_out)
+        response.success = true
     }
     catch(e){
         console.error(e.toString())
-        htmlResponse.describe = e.toString()
+        response.describe = e.toString()
     }
-    agent_idle = true
-    res.json(htmlResponse)
+    res.json(response)
 })
+
+app.post("/execute",validation_connect, async (req, res) =>
+{
+    let response = {
+        success: false
+    }
+    try{
+        const base64_in = ((req.query.base64 === "true") || ( req.query.base64_in === "true") )?true : false
+        const base64_out = ((req.query.base64 === "true") || ( req.query.base64_out === "true") )?true : false
+        const input_text = req.query.input_text === "true"
+
+        if(!req.body.lang) throw "require lang parameter"
+        if(!req.body.source) throw "require source parameter"
+        if(!Array.isArray(req.body.source)) throw "source parameter require Array type"
+        response.info = await judger.singleJudge(req.body.lang,req.body.source,req.body.input,input_text, base64_in,base64_out)
+        response.success = true
+    }
+    catch(e){
+        console.error(e.toString())
+        response.describe = e.toString()
+    }
+    res.json(response)
+})
+
 
 //
 app.post("/connection",validation_connect, async (req, res) =>
@@ -101,14 +130,15 @@ app.post("/test", async (req, res) =>
 // 註冊 agent 資料
 async function register_to_backend()
 {
-    while (!connect_token)
+    while (!connect_token && !OFFLINE_MODE )
     {
         const option = {
             method: 'post',
             url: `${BACKEND_SV}/activate`,
             data: qs.stringify({
                 active_code: ACTIVE_CODE
-            })
+            }),
+            timeout:5000,
         }
         await axios(option).then(async (response) =>
         {
@@ -135,7 +165,8 @@ async function check_connect()
         url: `${BACKEND_SV}/verify`,
         data: qs.stringify({
             token: connect_token
-        })
+        }),
+        timeout:5000,
     }
     await axios(option).then(async (response) =>
     {
@@ -153,7 +184,7 @@ async function check_connect()
         console.log("Agent is disconnected !!")
         connect_token = null
     })
-    if (!connect_token)
+    if (!connect_token && !OFFLINE_MODE)
     {
         await register_to_backend()
     }
@@ -183,4 +214,6 @@ app.listen(AGENT_PORT, () =>
         })
     })
     console.log(`agent server start at PORT:${AGENT_PORT} successfully `)
+    if(IGNORE_VALIDATION) console.log(`[warning] Agent API Validation Function is OFF`)
+    if(OFFLINE_MODE) console.log(`[warning] Agent API now is in OFFLINE mode`)
 })

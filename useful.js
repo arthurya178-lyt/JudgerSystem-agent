@@ -10,6 +10,16 @@ exports.shell = function (command) {
         })
     })
 }
+
+exports.randomCharacter = function (SIZE=32) {
+    const charList = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+    let rebuild = ""
+    for(let i = 0 ; i < SIZE ; i++){
+        rebuild += charList.charAt(Math.floor(Math.random()*charList.length))
+    }
+    return rebuild
+}
+
 exports.timeFileAnalyze = function (file_path, keyword, split_char = ": ") {
     try {
         if (fs.existsSync(file_path)) {
@@ -81,4 +91,9 @@ exports.readFile = function (file_path,option=null){
         console.error(e.toString())
     }
     return read_status
+}
+
+exports.sleep = function (second){
+    console.log((`[Sleep] XX | Program stop ${second}'s | XX` ))
+    return new Promise(resolve => setTimeout(() =>resolve(), second*1000));
 }

@@ -1,16 +1,16 @@
 #!/bin/bash
-readonly BASE_ROOT=$(dirname $0)
-cd $BASE_ROOT
+readonly SCRIPT_PATH=$(dirname $0)
 
 # import all parameter from environment shell
-source ./environment_argument.sh
-readonly current_directory=$(pwd)
+source $SCRIPT_PATH/environment_argument.sh
 
-# move to execute_environment
-cd $execute_environment_path
+target_folder=$1
+identify_name=$2
+input_file=$3
 
-identify_name=$1
-input_file=$2
+# here's argument is just for rename path name
+readonly COMPILE_FOLDER=$target_folder/$compile_folder_name
+readonly RESULT_FOLDER=$target_folder/$result_folder_name
 
 
 # this program is use to compile Python source code and execute it
@@ -26,19 +26,15 @@ input_file=$2
 
 
 # back to execute directory
-cd $execute_path
+cd $COMPILE_FOLDER
 
-# execute output from compile cpp file
-if [ -f $export_folder/$identify_name.out ]
+# execute output from compile py file
+
+if [ -z $input_file ]
 	then
-		if [ -z $input_file ]
-			then
-				/usr/bin/time --output=$export_folder/$identify_name.exec.time -f "TimeUsed: %E\nMaxMemoryUsed: %M" timeout --preserve-status $execute_timeout python3 $compile_folder/*.py > $result_folder/$identify_name.result 2>&1
-			else
-				/usr/bin/time --output=$export_folder/$identify_name.exec.time -f "TimeUsed: %E\nMaxMemoryUsed: %M" timeout --preserve-status $execute_timeout $compile_folder/*.py < $input_file > $result_folder/$identify_name.result 2>&1
-		fi
+		/usr/bin/time --output=$RESULT_FOLDER/$identify_name.exec.time -f "TimeUsed: %E\nMaxMemoryUsed: %M" timeout --preserve-status $execute_timeout python3 $COMPILE_FOLDER/*.py > $RESULT_FOLDER/$identify_name.result 2>&1
 	else
-		exit 2
+		/usr/bin/time --output=$RESULT_FOLDER/$identify_name.exec.time -f "TimeUsed: %E\nMaxMemoryUsed: %M" timeout --preserve-status $execute_timeout python3 $COMPILE_FOLDER/*.py < $input_file > $RESULT_FOLDER/$identify_name.result 2>&1
 fi
 
 # compile_status 0: execute successfully , 1: it stop by timeout , 130: program interrupted by user ctrl+c , 143: execute interrupted
