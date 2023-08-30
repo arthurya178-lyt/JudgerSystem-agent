@@ -1,5 +1,5 @@
 const judger = require('./executor.js')
-const {COMPILE_DIRECTORY, OUTPUT_DIRECTORY, RESULT_PATH} = require('./ENV.args')
+const {COMPILE_DIRECTORY, OUTPUT_DIRECTORY} = require('./variable_define')
 const {decodeBS64Files, readFile} = require('./useful')
 const path = require("path");
 asyncFunction()

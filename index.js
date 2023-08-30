@@ -1,13 +1,15 @@
 const express = require('express')
 const os = require('os')
+const dotenv = require("dotenv")
 const qs = require('qs')
 const axios = require('axios')
 const shell = require('./useful.js').shell
 const app = express()
 const path = require("path")
+dotenv.config()
 
 const judger = require("./executor")
-const {RELOAD_TIME, ACTIVE_CODE, BACKEND_SV, AGENT_PORT} = require("./ENV.args");
+const { BACKEND_SV, SUPPORT_LANGUAGE} = require("./variable_define");
 
 app.use(express.json())
 app.use(express.urlencoded({extended: false}))
@@ -26,7 +28,7 @@ const OFFLINE_MODE = false
 // ask backend server for connect
 register_to_backend()
 // routing ask connection is still alive ?
-setInterval(check_connect, RELOAD_TIME * 1000)
+setInterval(check_connect, process.env.FAILED_RELOAD_TIME * 1000)
 
 const validation_connect = function (req,res,next){
     if(IGNORE_VALIDATION || req.headers.token == connect_token){
@@ -106,13 +108,26 @@ app.post("/reset", async (req, res) =>
     let response = {
         status: "reject"
     }
-    if (req.body.code === ACTIVE_CODE)
+    if (req.body.code === process.env.ACTIVATE_KEY)
     {
         connect_token = null
         register_to_backend()
         response.status = "accept"
     }
     res.json(response)
+})
+
+app.post("/support",async (req,res)=>{
+    const support_list = []
+    for(let i = 1 ; i < SUPPORT_LANGUAGE.length;i++){
+        support_list.push({
+            id:i,
+            identify_name:SUPPORT_LANGUAGE[i].language_name,
+            language:SUPPORT_LANGUAGE[i].language_type,
+            allow_used:SUPPORT_LANGUAGE[i].activate
+        })
+    }
+    res.json({data:support_list})
 })
 
 app.post("/test", async (req, res) =>
@@ -136,7 +151,7 @@ async function register_to_backend()
             method: 'post',
             url: `${BACKEND_SV}/activate`,
             data: qs.stringify({
-                active_code: ACTIVE_CODE
+                active_code: process.env.ACTIVATE_KEY
             }),
             timeout:5000,
         }
@@ -190,6 +205,8 @@ async function check_connect()
     }
 }
 
+
+
 function sleep(ms)
 {
     return new Promise((resolve) =>
@@ -199,7 +216,7 @@ function sleep(ms)
 }
 
 
-app.listen(AGENT_PORT, () =>
+app.listen(process.env.AGENT_PORT, () =>
 {
     const ipDetails = os.networkInterfaces()
     const ipKey = Object.keys(ipDetails)
@@ -213,7 +230,7 @@ app.listen(AGENT_PORT, () =>
             }
         })
     })
-    console.log(`agent server start at PORT:${AGENT_PORT} successfully `)
+    console.log(`agent server start at PORT:${process.env.AGENT_PORT} successfully `)
     if(IGNORE_VALIDATION) console.log(`[warning] Agent API Validation Function is OFF`)
     if(OFFLINE_MODE) console.log(`[warning] Agent API now is in OFFLINE mode`)
 })

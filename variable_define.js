@@ -1,19 +1,13 @@
 const path = require('path')
 
-exports.ACTIVE_CODE="9C7YZYRKLYLVQ7Y9"
+// // Back end server connection IP
+exports.BACKEND_SV = `http://${process.env["CENTRAL_SERVER_IP"]}:${process.env["CENTRAL_SERVER_PORT"]}`
+// // Base Directory
+exports.SCRIPT_DIRECTORY = path.join(__dirname,"script")
+exports.EXECUTE_DIRECTORY = path.join(this.SCRIPT_DIRECTORY,"sessions")
+exports.COMPILE_FOLDER_NAME = "compile"
+exports.RESULT_FOLDER_NAME = "result"
 
-exports.BACKEND_IP="10.17.98.1"
-//exports.BACKEND_IP="192.168.163.1"
-exports.BACKEND_PORT=8080
-exports.AGENT_PORT=8123
-
-exports.RELOAD_TIME=2000
-
-exports.SCRIPT_PATH = "./script"
-exports.EXECUTE_PATH = "./sessions"
-exports.COMPILE_PATH = "./compile"
-exports.RESULT_PATH = "./result"
-exports.SHELL_ALLOW_TIME = '30s'
 exports.SUPPORT_LANGUAGE = [
     {
         language_name: "Test (Test 1.0.0)",
@@ -59,9 +53,3 @@ exports.SUPPORT_LANGUAGE = [
 exports.SECURITY_WORD = [ /system\s*\(/g,/WinExec\s*\(/g,/::CreateProcess\s*\(/g,/\.exec\s*\(/g,/\.fork\s*\(/g]
 
 
-// process commonly used path, don't change inside
-// // Back end server connection IP
-exports.BACKEND_SV = `http://${this.BACKEND_IP}:${this.BACKEND_PORT}`
-// // Base Directory
-exports.SCRIPT_DIRECTORY = path.join(__dirname,this.SCRIPT_PATH)
-exports.EXECUTE_DIRECTORY = path.join(this.SCRIPT_DIRECTORY,this.EXECUTE_PATH)

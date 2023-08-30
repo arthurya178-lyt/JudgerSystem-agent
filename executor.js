@@ -1,6 +1,6 @@
-const {SCRIPT_DIRECTORY, SUPPORT_LANGUAGE, SHELL_ALLOW_TIME, RESULT_PATH,
-    EXECUTE_DIRECTORY, COMPILE_PATH, SECURITY_WORD
-} = require("./ENV.args")
+const {SCRIPT_DIRECTORY, SUPPORT_LANGUAGE,
+    EXECUTE_DIRECTORY, SECURITY_WORD, RESULT_FOLDER_NAME, COMPILE_FOLDER_NAME
+} = require("./variable_define")
 
 const {shell, timeFileAnalyze, createFile,readFile,encodeResult} = require("./useful.js")
 const path = require('path')
@@ -70,12 +70,12 @@ module.exports = {
 
                 const compileAnswer = async ()=>{
                     // execute answer file
-                    judge_status.answer = await this.executeProgram(sessionId,language_id,"answer",answer_files,path.join(session_path,RESULT_PATH,"input.result"))
+                    judge_status.answer = await this.executeProgram(sessionId,language_id,"answer",answer_files,path.join(session_path,RESULT_FOLDER_NAME,"input.result"))
                 }
 
                 const compileStudent = async ()=>{
                     // execute student file
-                    judge_status.student = await this.executeProgram(sessionId,language_id,"student",student_files,path.join(session_path,RESULT_PATH,"input.result"))
+                    judge_status.student = await this.executeProgram(sessionId,language_id,"student",student_files,path.join(session_path,RESULT_FOLDER_NAME,"input.result"))
                 }
                 // increase process efficiency , so here we used Synchronize Technology
                 // await Promise.all([compileAnswer(),compileStudent()])
@@ -139,9 +139,9 @@ module.exports = {
                 // check is input_file is string or not
                 if(typeof input_file !== "string") throw "input_file parameter should be string type"
                 // loading input data to session path compile folder
-                this.loadingFile(path.join(session_path,RESULT_PATH), [{file_name:"input.result",file_data:input_file}])
+                this.loadingFile(path.join(session_path,RESULT_FOLDER_NAME), [{file_name:"input.result",file_data:input_file}])
                 // execute source code
-                judge_status.source = await this.executeProgram(sessionId,language_id,"source",source_code,path.join(session_path,RESULT_PATH,"input.result"))
+                judge_status.source = await this.executeProgram(sessionId,language_id,"source",source_code,path.join(session_path,RESULT_FOLDER_NAME,"input.result"))
                 judge_status.process_success = judge_status.source.done
             }
             else{
@@ -154,8 +154,11 @@ module.exports = {
                 }
 
                 // execute source code
-                judge_status.source = await this.executeProgram(sessionId,language_id,"source",source_code,path.join(session_path,RESULT_PATH,"input.result"))
+                judge_status.source = await this.executeProgram(sessionId,language_id,"source",source_code,path.join(session_path,RESULT_FOLDER_NAME,"input.result"))
                 judge_status.process_success = judge_status.source.done
+            }
+            if(base64_out){
+                judge_status.source = encodeResult(judge_status.source)
             }
             //await sleep(10)
             await this.endSession(sessionId)
@@ -171,7 +174,7 @@ module.exports = {
     },
     /*
     @session_id (string): this parameter is the program compile session folder id
-    @language_id (int) : check ENV.args.js SUPPORT_LANGUAGE to get language id
+    @language_id (int) : check variable_define.js SUPPORT_LANGUAGE to get language id
     @identification_code (string) : Used to identify the execution process
     @source_code (Object Array) : Used to loading source code to file and judge in execute environment
     @input_file_path (string) Not necessary: input file path (base on script folder)
@@ -189,8 +192,8 @@ module.exports = {
             // function main part
             const session_path = path.join(EXECUTE_DIRECTORY,sessionId)
 
-            const compile_dir = path.join(session_path,COMPILE_PATH)
-            const result_dir = path.join(session_path,RESULT_PATH)
+            const compile_dir = path.join(session_path,COMPILE_FOLDER_NAME)
+            const result_dir = path.join(session_path,RESULT_FOLDER_NAME)
 
             // loading file into compile environment
             const loading_result = this.loadingFile(compile_dir,source_code,language_id)
@@ -199,7 +202,7 @@ module.exports = {
             }
 
             // execute program
-            await shell(`timeout --preserve-status ${SHELL_ALLOW_TIME}  ${path.join(script_directory, support_lang[language_id].execute_file)} ${session_path} ${identification_code} ${input_file_path}`).then(response => {
+            await shell(`timeout --preserve-status ${process.env.SHELL_TIMEOUT}  ${path.join(script_directory, support_lang[language_id].execute_file)} ${session_path} ${identification_code} ${input_file_path}`).then(response => {
                 // console.log(response)
                 if (response.error) {
                     if (response.error.code === 1) {
