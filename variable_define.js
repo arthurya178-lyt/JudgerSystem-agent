@@ -50,6 +50,7 @@ exports.SUPPORT_LANGUAGE = [
         activate: true
     }
 ]
-exports.SECURITY_WORD = [ /system\s*\(/g,/WinExec\s*\(/g,/::CreateProcess\s*\(/g,/\.exec\s*\(/g,/\.fork\s*\(/g]
+exports.SECURITY_WORD = [ /system\s*\(/g,/WinExec\s*\(/g,/::CreateProcess\s*\(/g,/\.exec\s*\(/g,/\.fork\s*\(/g,
+    /bash\s*\(/g,/pwd\s*\(/g,]
 
 
